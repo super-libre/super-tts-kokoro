@@ -117,6 +117,39 @@ regen-tables:
     PYTHONPATH="$work/misaki" "$work/.venv/bin/python" tools/gen-zh-tables.py
     PYTHONPATH="$work/misaki" "$work/.venv/bin/python" tools/gen-ja-tables.py
 
+# The venv lives at a mktemp path, which is short on purpose: espeak-ng keeps
+# its data path in a 160-byte buffer and silently truncates longer ones (see
+# build.rs), and the espeakng-loader wheel latches the path at import.
+#
+# The oracle is pinned to what Kokoro itself pins (`misaki[en]==0.9.4`), unlike
+# the zh/ja tables above which track misaki's git head.
+#
+# Regenerate the English lexicons, golden answers, and tokenizer dump.
+regen-en-tables:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    work="$(mktemp -d)"
+    trap 'rm -rf "$work"' EXIT
+    uv venv --python 3.12 "$work/mv"
+    VIRTUAL_ENV="$work/mv" uv pip install --quiet "misaki[en]==0.9.4" \
+        "en_core_web_sm@https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
+    "$work/mv/bin/python" tools/gen-en-tables.py
+
+# Deterministic (fixed seed, book list, and epochs), so the committed weights
+# reproduce from this recipe alone. Takes ~15 minutes; the Gutenberg corpus is
+# cached in /tmp/en-tagger-corpus so reruns skip the downloads.
+#
+# Retrain the English POS tagger that picks heteronym pronunciations.
+train-en-tagger:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    work="$(mktemp -d)"
+    trap 'rm -rf "$work"' EXIT
+    uv venv --python 3.12 "$work/mv"
+    VIRTUAL_ENV="$work/mv" uv pip install --quiet "misaki[en]==0.9.4" \
+        "en_core_web_sm@https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
+    "$work/mv/bin/python" tools/gen-en-tagger.py
+
 # No doctests: this is a binary-only crate, so `cargo test --doc` has no lib
 # target.
 #

@@ -30,7 +30,8 @@ requires `misaki[en]>=0.9.4`, and constructs `en.G2P(trf=False,
 british=..., fallback=espeak.EspeakFallback(british=...), unk='')` — this
 script constructs it identically.
 
-Regenerating (only needed if the pinned reference ever changes):
+Regenerating (only needed if the pinned reference ever changes) —
+`just regen-en-tables` runs exactly these steps:
 
     # SHORT venv path, deliberately: espeak-ng holds its data path in a
     # 160-byte buffer and silently truncates longer ones (see build.rs).

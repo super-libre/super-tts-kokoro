@@ -21,6 +21,8 @@ reproduce it. Deterministic: fixed seed, fixed book list, fixed epochs.
 Run inside the same venv as gen-en-tables.py (see its docstring), then:
 
     /tmp/mv/bin/python tools/gen-en-tagger.py
+
+`just train-en-tagger` does both.
 """
 
 import gzip
