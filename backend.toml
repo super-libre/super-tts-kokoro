@@ -21,6 +21,24 @@
     # Required to be empty for subprocess backends; the transport has no network.
     allowed_hosts = []
 
+# One entry per tarball `.github/workflows/release.yml` builds — the filenames
+# must match it exactly, since the indexer resolves them against the release's
+# assets and pins their hashes. The archives hold the binary at their root,
+# which is where `entrypoint` above says to find it.
+#
+# CPU only, and only these two triples: no GPU path is built (see
+# `supported_devices` below), and espeak-ng's data compiles by running the
+# binary just built, which needs a cross image that supplies a qemu runner.
+[[assets.subprocess]]
+    file = "kokoro-x86_64-unknown-linux-gnu-cpu.tar.gz"
+    target = "x86_64-unknown-linux-gnu"
+    accel = "cpu"
+
+[[assets.subprocess]]
+    file = "kokoro-aarch64-unknown-linux-gnu-cpu.tar.gz"
+    target = "aarch64-unknown-linux-gnu"
+    accel = "cpu"
+
 [[models]]
     name = "kokoro-82m"
     role = "synthesis"
