@@ -1,5 +1,7 @@
 # Super TTS — Kokoro backend
 
+[![coverage](https://img.shields.io/endpoint?url=https://jorge-menjivar.github.io/super-tts-kokoro/coverage.json)](https://jorge-menjivar.github.io/super-tts-kokoro/)
+
 [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) as a subprocess backend
 for [Super TTS](https://github.com/jorge-menjivar/super-tts). 82M parameters,
 24 kHz output, 54 preset voices across eight languages, running on the CPU in
