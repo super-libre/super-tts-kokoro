@@ -1,0 +1,95 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }} ${{ matrix.suffix }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Both targets build in cross's stock images, which supply the cmake
+          # and C toolchain espeak-ng needs, so the runner installs nothing.
+          #
+          # espeak-ng compiles its dictionaries by *running* the binary it just
+          # built. For aarch64 that binary is foreign, so build.rs runs it
+          # through `CARGO_TARGET_<TRIPLE>_RUNNER` — which every cross image
+          # sets to `/linux-runner <arch>`, i.e. qemu-user. See build.rs.
+          - { target: x86_64-unknown-linux-gnu, suffix: cpu }
+          - { target: aarch64-unknown-linux-gnu, suffix: cpu }
+
+    steps:
+      # espeak-ng is a submodule. build.rs fails with instructions when it is
+      # missing rather than producing a binary that cannot speak.
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ matrix.target }}-${{ matrix.suffix }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build
+        run: cross build --release --locked --target ${{ matrix.target }}
+
+      - name: Create tarball
+        run: |
+          tar -czf "kokoro-${{ matrix.target }}-${{ matrix.suffix }}.tar.gz" \
+            -C "target/${{ matrix.target }}/release" super-tts-backend-kokoro
+          ls -lh kokoro-*.tar.gz
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: kokoro-${{ matrix.target }}-${{ matrix.suffix }}
+          path: kokoro-${{ matrix.target }}-${{ matrix.suffix }}.tar.gz
+
+  create-release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      # backend.toml must ship as a release asset named exactly `backend.toml`:
+      # the super-tts indexer hashes these bytes into the registry's `manifest`
+      # pin, and the daemon verifies the installed manifest against that hash
+      # (reviewed == pinned == installed). Without it, the indexer falls back to
+      # un-pinned repo-source indexing. Checkout brings the tag's backend.toml
+      # into the workspace — the build tarballs don't carry it.
+      - uses: actions/checkout@v6
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            backend.toml
+            artifacts/**/*.tar.gz
+          generate_release_notes: true

@@ -1,0 +1,86 @@
+[package]
+    name = "super-tts-backend-kokoro"
+    version = "0.1.0"
+    edition = "2024"
+    description = "Kokoro-82M text-to-speech backend for Super TTS."
+    repository = "https://github.com/jorge-menjivar/super-tts-kokoro"
+    license = "GPL-3.0-only"
+
+[[bin]]
+    name = "super-tts-backend-kokoro"
+    path = "src/main.rs"
+
+[dependencies]
+    anyhow = "1.0.100"
+    axum = "0.8"
+    bytes = "1"
+    env_logger = "0.11.8"
+    # misaki's English subtokenizer regex needs lookahead, which the plain
+    # regex crate deliberately omits; see src/en.rs.
+    fancy-regex = "0.16"
+    # Unpacks the espeak-ng data embedded by build.rs. `flate2` defaults to the
+    # pure-Rust miniz_oxide backend, so this adds no C dependency.
+    flate2 = "1"
+    hyper = { version = "1", features = ["http1", "server"] }
+    hyper-util = { version = "0.1", features = ["server", "service", "tokio"] }
+    # Mandarin word segmentation, the same segmenter misaki uses.
+    jieba-rs = "0.10"
+    # Japanese morphological analysis. `mmap` is what keeps loading the 191 MB
+    # UniDic dictionary to milliseconds instead of a full read.
+    lindera = { version = "6", default-features = false, features = ["mmap"] }
+    log = "0.4.29"
+    # Must match the version ort builds its bridge against.
+    ndarray = "0.17"
+    # Pinned exactly: ort has no stable release and its API moves between
+    # release candidates, so a caret range would silently break the build.
+    ort = {
+        version = "=2.0.0-rc.13",
+        default-features = false,
+        features = [
+            # Fetches a prebuilt ONNX Runtime at build time and links it, so the
+            # installed backend needs no system onnxruntime package. `tls-rustls`
+            # is what that fetch uses; ort refuses to build without a TLS choice.
+            "download-binaries",
+            "ndarray",
+            # `std` is not decoration: it is what turns on `ndarray/std`, without
+            # which ort's own ndarray bridge fails to compile.
+            "std",
+            "tls-rustls",
+        ]
+    }
+    # Number rewriting for Mandarin; see src/zh_numbers.rs.
+    regex = "1"
+    serde = { version = "1.0.219", features = ["derive"] }
+    serde_json = "1"
+    tar = "0.4"
+    tokio = {
+        version = "1",
+        features = [
+            "macros",
+            "net",
+            "rt-multi-thread",
+            "signal",
+            "sync",
+        ]
+    }
+    tokio-stream = "0.1"
+    unicode-normalization = "0.1"
+    # Expands the UniDic archive the daemon fetches.
+    zip = { version = "6", default-features = false, features = ["deflate"] }
+
+[build-dependencies]
+    # Builds the vendored espeak-ng; see build.rs.
+    cmake = "0.1"
+    flate2 = "1"
+    # Mandarin word segmentation, the same segmenter misaki uses.
+    jieba-rs = "0.10"
+    # Japanese morphological analysis. `mmap` is what keeps loading the 191 MB
+    # UniDic dictionary to milliseconds instead of a full read.
+    lindera = { version = "6", default-features = false, features = ["mmap"] }
+    tar = "0.4"
+    unicode-normalization = "0.1"
+    # Expands the UniDic archive the daemon fetches.
+    zip = { version = "6", default-features = false, features = ["deflate"] }
+
+[lints.clippy]
+    pedantic = "warn"
