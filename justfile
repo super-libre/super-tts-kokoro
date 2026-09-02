@@ -39,6 +39,22 @@ stage *args: (build-release args)
     cp target/release/super-tts-backend-kokoro super-tts-backend-kokoro
     @echo "staged super-tts-backend-kokoro — this directory is now installable with Import from dir"
 
+# Note this also drops the UniDic dictionary `fetch-unidic` puts under target/,
+# so the next `just test-ja` downloads it again.
+#
+# Remove build output.
+clean:
+    cargo clean
+
+# `cargo clean` only touches target/. These four are the rest of what a build
+# leaves behind, and the only build artifacts .gitignore lists beside it: the
+# binary `stage` copies to the repo root, the lcov report `coverage-lcov`
+# writes, and the profile data coverage runs can drop in the working directory.
+#
+# Remove build output and every generated artifact in the tree.
+clean-all: clean
+    rm -f super-tts-backend-kokoro lcov.info *.profraw *.profdata
+
 # Runs a clippy check — mirrors super-tts's lint.
 check *args:
     cargo clippy --all-targets {{ args }} -- -W clippy::pedantic -D warnings -D unused_must_use
