@@ -1,0 +1,108 @@
+Super TTS — Kokoro backend
+Copyright (C) 2026 Jorge Menjivar <jorge@menjivar.ai>
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. See LICENSE for the full text.
+
+This backend redistributes and derives from the third-party work below. Full
+license texts for the works whose terms require one are in `licenses/`.
+
+
+## espeak-ng — GPL-3.0-or-later
+
+`vendor/espeak-ng` is an unmodified submodule of https://github.com/espeak-ng/espeak-ng,
+built from source by `build.rs`. Its compiled dictionary data for en, es, fr,
+it, pt, and hi is embedded in this backend's binary, and the phonemizer is
+linked into it. See `vendor/espeak-ng/COPYING`; parts of that project carry
+Apache-2.0, BSD-2-Clause, and Unicode terms in `COPYING.APACHE`, `COPYING.BSD2`,
+and `COPYING.UCD`.
+
+
+## misaki — Apache-2.0
+
+Copyright hexgrad <hello@hexgrad.com>. https://github.com/hexgrad/misaki
+License: `licenses/misaki-Apache-2.0.txt`
+
+misaki is the grapheme-to-phoneme system Kokoro was trained with, so this
+backend reproduces it rather than approximating it. From misaki 0.9.4:
+
+  * `data/en-gold-us.json.gz`, `en-gold-gb.json.gz`, `en-silver-us.json.gz`,
+    and `en-silver-gb.json.gz` are its English pronunciation lexicons, copied
+    verbatim and gzipped, unmodified.
+  * `data/zh-ipa.tsv.gz` is derived from its Mandarin syllable-to-IPA mapping.
+  * `data/ja-kana.tsv.gz`, `ja-kata-ext.tsv.gz`, and `ja-words.tsv.gz` are
+    derived from `misaki.cutlet`, which is misaki's copy of cutlet
+    (https://github.com/polm/cutlet, MIT, Copyright Paul O'Leary McCann).
+  * `data/en-golden.tsv`, `zh-golden.tsv`, and `ja-golden.tsv` record misaki's
+    own output, used as test fixtures.
+  * `src/en.rs`, `src/zh.rs`, and `src/ja.rs` are ports of its algorithms,
+    including the espeak rewrite table in `src/en.rs`.
+
+`src/zh_numbers.rs` and `src/ja_numbers.rs` are original implementations that
+reproduce what misaki emits for numbers — for Mandarin that is the behaviour of
+cn2an (https://github.com/Ailln/cn2an, MIT), which misaki calls — rather than
+ports of either. Their fixtures in `data/` are written by hand.
+
+
+## pypinyin — MIT
+
+Copyright (c) 2016 mozillazg, 闲耘 <hotoo.cn@gmail.com>
+https://github.com/mozillazg/python-pinyin
+License: `licenses/pypinyin-MIT.txt`
+
+`data/zh-chars.tsv.gz` and `data/zh-phrases.tsv.gz` are built from pypinyin
+0.55.0's `PINYIN_DICT` and `PHRASES_DICT`, the dictionaries misaki resolves
+Mandarin readings against.
+
+
+## spaCy and en_core_web_sm — MIT
+
+Copyright (C) 2016-2024 ExplosionAI GmbH, 2016 spaCy GmbH, 2015 Matthew Honnibal
+https://github.com/explosion/spaCy
+License: `licenses/spacy-MIT.txt`
+
+misaki tags English with spaCy, and this backend reproduces those tags without
+shipping the model:
+
+  * `data/en-tokenizer.json.gz` is en_core_web_sm 3.8.0's tokenizer exception
+    table and affix patterns, dumped verbatim.
+  * `data/en-tokens.tsv` records its tokenization and tags for the fixture
+    corpus, used as a test fixture.
+  * `data/en-tagger.json.gz` holds averaged-perceptron weights trained on
+    en_core_web_sm 3.8.0's tagger output — the model's predictions are the
+    training labels, so the weights are derived from it.
+
+
+## num2words — LGPL-2.1
+
+Copyright (c) Taro Ogawa and contributors.
+https://github.com/savoirfairelinux/num2words
+License: `licenses/num2words-LGPL-2.1.txt`
+
+`src/en_numbers.rs` is a Rust port of its English cardinal, ordinal, and year
+verbalization, reproducing its output exactly; misaki calls num2words for the
+same purpose. `data/en-numwords.tsv` records num2words' output over a numeric
+sweep, and is what that port is tested against.
+
+
+## Project Gutenberg — public domain
+
+`tools/gen-en-tagger.py` trains on public-domain prose fetched from
+https://www.gutenberg.org. No Gutenberg text is redistributed here — only the
+tagger weights learned from it, and the texts themselves are in the public
+domain in the United States.
+
+
+## Fetched at runtime, not redistributed here
+
+These are downloaded by the Super TTS daemon on the user's machine before first
+use, under their own terms; no part of them is contained in this repository or
+its release archives.
+
+  * Kokoro-82M ONNX weights and voice packs, from
+    https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX (the model is
+    hexgrad/Kokoro-82M; see its model card for terms).
+  * The UniDic dictionary for Japanese morphological analysis, from
+    https://github.com/lindera/lindera releases.

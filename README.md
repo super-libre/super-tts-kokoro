@@ -311,3 +311,8 @@ cargo clippy --all-targets -- -W clippy::pedantic -D warnings
 
 GPL-3.0-only, matching Super TTS. The Kokoro weights are Apache-2.0 and are
 downloaded at runtime rather than vendored here.
+
+The pronunciation data in `data/` is not all ours: the English lexicons are
+misaki's, copied verbatim, and the Mandarin and Japanese tables derive from
+misaki and pypinyin. `NOTICE` records what comes from where, and `licenses/`
+carries the upstream license texts.

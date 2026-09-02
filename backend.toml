@@ -15,7 +15,7 @@
     product = "super-voice"
     contract = "v4"
     license = "GPL-3.0-only"
-    description = "Kokoro-82M local text-to-speech, 24 kHz, 41 preset voices."
+    description = "Kokoro-82M local text-to-speech, 24 kHz, 54 preset voices."
 
 [network]
     # Required to be empty for subprocess backends; the transport has no network.
@@ -359,6 +359,36 @@
         tags = ["italian", "male"]
 
     [[models.voices]]
+        id = "jf_alpha"
+        label = "Alpha (Japanese, female)"
+        language = "ja"
+        tags = ["japanese", "female"]
+
+    [[models.voices]]
+        id = "jf_gongitsune"
+        label = "Gongitsune (Japanese, female)"
+        language = "ja"
+        tags = ["japanese", "female"]
+
+    [[models.voices]]
+        id = "jf_nezumi"
+        label = "Nezumi (Japanese, female)"
+        language = "ja"
+        tags = ["japanese", "female"]
+
+    [[models.voices]]
+        id = "jf_tebukuro"
+        label = "Tebukuro (Japanese, female)"
+        language = "ja"
+        tags = ["japanese", "female"]
+
+    [[models.voices]]
+        id = "jm_kumo"
+        label = "Kumo (Japanese, male)"
+        language = "ja"
+        tags = ["japanese", "male"]
+
+    [[models.voices]]
         id = "pf_dora"
         label = "Dora (Portuguese, female)"
         language = "pt"
@@ -375,3 +405,51 @@
         label = "Santa (Portuguese, male)"
         language = "pt"
         tags = ["portuguese", "male"]
+
+    [[models.voices]]
+        id = "zf_xiaobei"
+        label = "Xiaobei (Mandarin, female)"
+        language = "zh"
+        tags = ["mandarin", "female"]
+
+    [[models.voices]]
+        id = "zf_xiaoni"
+        label = "Xiaoni (Mandarin, female)"
+        language = "zh"
+        tags = ["mandarin", "female"]
+
+    [[models.voices]]
+        id = "zf_xiaoxiao"
+        label = "Xiaoxiao (Mandarin, female)"
+        language = "zh"
+        tags = ["mandarin", "female"]
+
+    [[models.voices]]
+        id = "zf_xiaoyi"
+        label = "Xiaoyi (Mandarin, female)"
+        language = "zh"
+        tags = ["mandarin", "female"]
+
+    [[models.voices]]
+        id = "zm_yunjian"
+        label = "Yunjian (Mandarin, male)"
+        language = "zh"
+        tags = ["mandarin", "male"]
+
+    [[models.voices]]
+        id = "zm_yunxi"
+        label = "Yunxi (Mandarin, male)"
+        language = "zh"
+        tags = ["mandarin", "male"]
+
+    [[models.voices]]
+        id = "zm_yunxia"
+        label = "Yunxia (Mandarin, male)"
+        language = "zh"
+        tags = ["mandarin", "male"]
+
+    [[models.voices]]
+        id = "zm_yunyang"
+        label = "Yunyang (Mandarin, male)"
+        language = "zh"
+        tags = ["mandarin", "male"]
