@@ -76,7 +76,7 @@ fetch-unidic:
 
 # Run the whole suite including the Japanese reference fixture.
 test-ja *args: fetch-unidic
-    SUPER_TTS_BACKEND_DIR="{{ unidic_dir }}" cargo test --locked {{ args }}
+    SUPER_VOICE_BACKEND_DIR="{{ unidic_dir }}" cargo test --locked {{ args }}
 
 # cross-rs builds inside a container, so no local cmake or C toolchain is
 # needed. aarch64 works because build.rs runs the espeak-ng it just built

@@ -684,7 +684,7 @@ mod tests {
     /// daemon in production, so it is not in the repository and the tests that
     /// need it say so rather than passing vacuously.
     fn test_backend_dir() -> Option<PathBuf> {
-        let dir = PathBuf::from(std::env::var("SUPER_TTS_BACKEND_DIR").ok()?);
+        let dir = PathBuf::from(std::env::var("SUPER_VOICE_BACKEND_DIR").ok()?);
         dir.join(DICTIONARY_ARCHIVE).is_file().then_some(dir)
     }
 
@@ -715,7 +715,7 @@ mod tests {
     fn matches_the_reference_g2p() {
         let Some(dir) = test_backend_dir() else {
             eprintln!(
-                "skipping: no {DICTIONARY_ARCHIVE} under $SUPER_TTS_BACKEND_DIR. \
+                "skipping: no {DICTIONARY_ARCHIVE} under $SUPER_VOICE_BACKEND_DIR. \
                  The Japanese dictionary is fetched by the daemon, so set that \
                  variable to a populated backend directory to run this test."
             );
