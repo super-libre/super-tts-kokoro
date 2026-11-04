@@ -1,4 +1,4 @@
-#:schema https://jorge-menjivar.github.io/super-tts/backend.schema.json
+#:schema https://jorge-menjivar.github.io/super-voice/backend.schema.json
 # Kokoro-82M for Super TTS.
 #
 # Every file below is fetched by the daemon before the first `POST /v1/load`:
@@ -12,7 +12,7 @@
     version = "0.1.0"
     kind = "subprocess"
     entrypoint = "super-tts-backend-kokoro"
-    product = "super-tts"
+    product = "super-voice"
     contract = "v1"
     license = "GPL-3.0-only"
     description = "Kokoro-82M local text-to-speech, 24 kHz, 41 preset voices."
@@ -23,6 +23,7 @@
 
 [[models]]
     name = "kokoro-82m"
+    role = "synthesis"
     multilingual = true
     primary_language = "en"
     # Mandarin is phonemized by src/zh.rs rather than espeak-ng, which writes
