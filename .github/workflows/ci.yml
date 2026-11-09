@@ -129,7 +129,7 @@ jobs:
       - name: Coverage (lcov + summary)
         run: |
           just fetch-unidic
-          SUPER_TTS_BACKEND_DIR="$PWD/target/test-backend" just coverage-lcov
+          SUPER_VOICE_BACKEND_DIR="$PWD/target/test-backend" just coverage-lcov
 
       - uses: actions/upload-artifact@v7
         with:
@@ -179,7 +179,7 @@ jobs:
       - name: Generate HTML coverage report
         run: |
           just fetch-unidic
-          SUPER_TTS_BACKEND_DIR="$PWD/target/test-backend" just coverage --html
+          SUPER_VOICE_BACKEND_DIR="$PWD/target/test-backend" just coverage --html
 
       # Drop a shields.io "endpoint" JSON beside the HTML so the README badge
       # reads the latest line-% straight from Pages — no Gist or PAT. `report`

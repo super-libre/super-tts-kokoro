@@ -299,7 +299,7 @@ offer the user a device this backend cannot honor.
 cargo test     # 65 tests; the phonemizer ones drive the linked espeak-ng and
                # replay 449 reference answers for Mandarin. The Japanese
                # fixture needs the UniDic dictionary, which the daemon fetches
-               # rather than the repo carrying; point SUPER_TTS_BACKEND_DIR at
+               # rather than the repo carrying; point SUPER_VOICE_BACKEND_DIR at
                # a populated backend directory to run it, or it says it is
                # skipping rather than passing vacuously.
 cargo clippy --all-targets -- -W clippy::pedantic -D warnings
