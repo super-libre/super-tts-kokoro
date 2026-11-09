@@ -13,7 +13,7 @@
     kind = "subprocess"
     entrypoint = "super-tts-backend-kokoro"
     product = "super-voice"
-    contract = "v1"
+    contract = "v4"
     license = "GPL-3.0-only"
     description = "Kokoro-82M local text-to-speech, 24 kHz, 41 preset voices."
 
