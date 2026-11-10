@@ -67,11 +67,13 @@ and `phontab` are little-endian byte formats, not machine code.
 Both release targets therefore build in cross's stock images, and the x86_64
 artifact was verified to produce byte-identical audio to a native build.
 
-> One sharp edge: espeak-ng keeps its data directory in a fixed 160-byte buffer
-> and silently truncates anything longer, so a very deep build path makes it
-> fail to find data it just compiled. `build.rs` checks this and tells you to
-> set `CARGO_TARGET_DIR` rather than letting it surface as a confusing
-> mid-build "No such file or directory".
+> One sharp edge: espeak-ng holds its paths in fixed-size buffers and silently
+> truncates anything longer. Its data compiler is the tight one — the data
+> directory plus `/../phsource/<file>` must fit in 180 bytes, which leaves the
+> directory about 143 — and a CI checkout's `OUT_DIR` is well past that under
+> `cargo llvm-cov` or a cross build. So `build.rs` never shows espeak-ng the
+> real path: it compiles through a short symlink in the temp directory, and
+> checks the length it actually hands over.
 
 ### What this is written in
 
