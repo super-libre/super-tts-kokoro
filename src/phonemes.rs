@@ -665,7 +665,10 @@ mod tests {
         assert!(!dots.is_empty(), "punctuation still produces pause tokens");
         assert!(!is_pronounceable(&dots));
 
-        assert!(phonemize("   ", "af_heart", Some("en")).unwrap().is_empty());
+        assert_eq!(
+            phonemize("   ", "af_heart", Some("en")).unwrap(),
+            Vec::<i64>::new()
+        );
         assert!(!is_pronounceable(&[]));
     }
 
