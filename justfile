@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Task runner for the standalone Kokoro backend. Mirrors the recipe names used
-# by the main super-tts repo and by the other out-of-tree backends, so `just
+# by the main super-voice repo and by the other out-of-tree backends, so `just
 # check` means the same thing everywhere.
 #
 # Two things are specific to this backend:
@@ -36,10 +36,26 @@ build-release *args:
 #
 # Build and stage the binary for Import-from-dir. Usage: just stage [args]
 stage *args: (build-release args)
-    cp target/release/super-tts-backend-kokoro super-tts-backend-kokoro
-    @echo "staged super-tts-backend-kokoro — this directory is now installable with Import from dir"
+    cp target/release/super-voice-backend-kokoro super-voice-backend-kokoro
+    @echo "staged super-voice-backend-kokoro — this directory is now installable with Import from dir"
 
-# Runs a clippy check — mirrors super-tts's lint.
+# Note this also drops the UniDic dictionary `fetch-unidic` puts under target/,
+# so the next `just test-ja` downloads it again.
+#
+# Remove build output.
+clean:
+    cargo clean
+
+# `cargo clean` only touches target/. These four are the rest of what a build
+# leaves behind, and the only build artifacts .gitignore lists beside it: the
+# binary `stage` copies to the repo root, the lcov report `coverage-lcov`
+# writes, and the profile data coverage runs can drop in the working directory.
+#
+# Remove build output and every generated artifact in the tree.
+clean-all: clean
+    rm -f super-voice-backend-kokoro lcov.info *.profraw *.profdata
+
+# Runs a clippy check — mirrors super-voice's lint.
 check *args:
     cargo clippy --all-targets {{ args }} -- -W clippy::pedantic -D warnings -D unused_must_use
 
@@ -116,6 +132,39 @@ regen-tables:
     git clone --quiet --depth 1 https://github.com/hexgrad/misaki "$work/misaki"
     PYTHONPATH="$work/misaki" "$work/.venv/bin/python" tools/gen-zh-tables.py
     PYTHONPATH="$work/misaki" "$work/.venv/bin/python" tools/gen-ja-tables.py
+
+# The venv lives at a mktemp path, which is short on purpose: espeak-ng keeps
+# its data path in a 160-byte buffer and silently truncates longer ones (see
+# build.rs), and the espeakng-loader wheel latches the path at import.
+#
+# The oracle is pinned to what Kokoro itself pins (`misaki[en]==0.9.4`), unlike
+# the zh/ja tables above which track misaki's git head.
+#
+# Regenerate the English lexicons, golden answers, and tokenizer dump.
+regen-en-tables:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    work="$(mktemp -d)"
+    trap 'rm -rf "$work"' EXIT
+    uv venv --python 3.12 "$work/mv"
+    VIRTUAL_ENV="$work/mv" uv pip install --quiet "misaki[en]==0.9.4" \
+        "en_core_web_sm@https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
+    "$work/mv/bin/python" tools/gen-en-tables.py
+
+# Deterministic (fixed seed, book list, and epochs), so the committed weights
+# reproduce from this recipe alone. Takes ~15 minutes; the Gutenberg corpus is
+# cached in /tmp/en-tagger-corpus so reruns skip the downloads.
+#
+# Retrain the English POS tagger that picks heteronym pronunciations.
+train-en-tagger:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    work="$(mktemp -d)"
+    trap 'rm -rf "$work"' EXIT
+    uv venv --python 3.12 "$work/mv"
+    VIRTUAL_ENV="$work/mv" uv pip install --quiet "misaki[en]==0.9.4" \
+        "en_core_web_sm@https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
+    "$work/mv/bin/python" tools/gen-en-tagger.py
 
 # No doctests: this is a binary-only crate, so `cargo test --doc` has no lib
 # target.

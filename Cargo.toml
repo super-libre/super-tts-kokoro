@@ -1,13 +1,13 @@
 [package]
-    name = "super-tts-backend-kokoro"
+    name = "super-voice-backend-kokoro"
     version = "0.1.0"
     edition = "2024"
-    description = "Kokoro-82M text-to-speech backend for Super TTS."
-    repository = "https://github.com/jorge-menjivar/super-tts-kokoro"
+    description = "Kokoro-82M text-to-speech backend for Super Voice."
+    repository = "https://github.com/super-libre/super-voice-kokoro"
     license = "GPL-3.0-only"
 
 [[bin]]
-    name = "super-tts-backend-kokoro"
+    name = "super-voice-backend-kokoro"
     path = "src/main.rs"
 
 [dependencies]

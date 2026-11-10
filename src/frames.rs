@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //! The `POST /v1/synthesize` response framing.
 //!
-//! `[u8 kind][u32 len little-endian][payload]`, per the Super TTS backend
+//! `[u8 kind][u32 len little-endian][payload]`, per the Super Voice backend
 //! contract. Written here rather than taken from a shared crate on purpose: a
 //! backend is third-party code to the daemon, and encoding the wire format
 //! independently is what makes the daemon's decoder tests a check of the
@@ -173,7 +173,7 @@ mod tests {
 
     #[test]
     fn no_audio_produces_no_frames() {
-        assert!(audio_frames(&[]).is_empty());
+        assert_eq!(audio_frames(&[]), Vec::<Vec<u8>>::new());
     }
 
     #[test]

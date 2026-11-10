@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-//! Kokoro-82M text-to-speech backend for Super TTS.
+//! Kokoro-82M text-to-speech backend for Super Voice.
 //!
 //! A subprocess backend: the daemon spawns this binary inside a hardened
 //! `systemd-run --user` transient unit and drives the `/v1` contract over a

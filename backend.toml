@@ -1,25 +1,43 @@
 #:schema https://jorge-menjivar.github.io/super-voice/backend.schema.json
-# Kokoro-82M for Super TTS.
+# Kokoro-82M for Super Voice.
 #
 # Every file below is fetched by the daemon before the first `POST /v1/load`:
 # the backend runs with `PrivateNetwork=yes` and a read-only backend directory,
 # so it can neither download nor write a weight itself.
 
 [backend]
-    id = "app.super-tts.kokoro"
-    source = "github.com/jorge-menjivar/super-tts-kokoro"
+    id = "app.super-voice.kokoro"
+    source = "github.com/super-libre/super-voice-kokoro"
     name = "Kokoro"
     version = "0.1.0"
     kind = "subprocess"
-    entrypoint = "super-tts-backend-kokoro"
+    entrypoint = "super-voice-backend-kokoro"
     product = "super-voice"
     contract = "v4"
     license = "GPL-3.0-only"
-    description = "Kokoro-82M local text-to-speech, 24 kHz, 41 preset voices."
+    description = "Kokoro-82M local text-to-speech, 24 kHz, 54 preset voices."
 
 [network]
     # Required to be empty for subprocess backends; the transport has no network.
     allowed_hosts = []
+
+# One entry per tarball `.github/workflows/release.yml` builds — the filenames
+# must match it exactly, since the indexer resolves them against the release's
+# assets and pins their hashes. The archives hold the binary at their root,
+# which is where `entrypoint` above says to find it.
+#
+# CPU only, and only these two triples: no GPU path is built (see
+# `supported_devices` below), and espeak-ng's data compiles by running the
+# binary just built, which needs a cross image that supplies a qemu runner.
+[[assets.subprocess]]
+    file = "kokoro-x86_64-unknown-linux-gnu-cpu.tar.gz"
+    target = "x86_64-unknown-linux-gnu"
+    accel = "cpu"
+
+[[assets.subprocess]]
+    file = "kokoro-aarch64-unknown-linux-gnu-cpu.tar.gz"
+    target = "aarch64-unknown-linux-gnu"
+    accel = "cpu"
 
 [[models]]
     name = "kokoro-82m"
@@ -341,6 +359,36 @@
         tags = ["italian", "male"]
 
     [[models.voices]]
+        id = "jf_alpha"
+        label = "Alpha (Japanese, female)"
+        language = "ja"
+        tags = ["japanese", "female"]
+
+    [[models.voices]]
+        id = "jf_gongitsune"
+        label = "Gongitsune (Japanese, female)"
+        language = "ja"
+        tags = ["japanese", "female"]
+
+    [[models.voices]]
+        id = "jf_nezumi"
+        label = "Nezumi (Japanese, female)"
+        language = "ja"
+        tags = ["japanese", "female"]
+
+    [[models.voices]]
+        id = "jf_tebukuro"
+        label = "Tebukuro (Japanese, female)"
+        language = "ja"
+        tags = ["japanese", "female"]
+
+    [[models.voices]]
+        id = "jm_kumo"
+        label = "Kumo (Japanese, male)"
+        language = "ja"
+        tags = ["japanese", "male"]
+
+    [[models.voices]]
         id = "pf_dora"
         label = "Dora (Portuguese, female)"
         language = "pt"
@@ -357,3 +405,51 @@
         label = "Santa (Portuguese, male)"
         language = "pt"
         tags = ["portuguese", "male"]
+
+    [[models.voices]]
+        id = "zf_xiaobei"
+        label = "Xiaobei (Mandarin, female)"
+        language = "zh"
+        tags = ["mandarin", "female"]
+
+    [[models.voices]]
+        id = "zf_xiaoni"
+        label = "Xiaoni (Mandarin, female)"
+        language = "zh"
+        tags = ["mandarin", "female"]
+
+    [[models.voices]]
+        id = "zf_xiaoxiao"
+        label = "Xiaoxiao (Mandarin, female)"
+        language = "zh"
+        tags = ["mandarin", "female"]
+
+    [[models.voices]]
+        id = "zf_xiaoyi"
+        label = "Xiaoyi (Mandarin, female)"
+        language = "zh"
+        tags = ["mandarin", "female"]
+
+    [[models.voices]]
+        id = "zm_yunjian"
+        label = "Yunjian (Mandarin, male)"
+        language = "zh"
+        tags = ["mandarin", "male"]
+
+    [[models.voices]]
+        id = "zm_yunxi"
+        label = "Yunxi (Mandarin, male)"
+        language = "zh"
+        tags = ["mandarin", "male"]
+
+    [[models.voices]]
+        id = "zm_yunxia"
+        label = "Yunxia (Mandarin, male)"
+        language = "zh"
+        tags = ["mandarin", "male"]
+
+    [[models.voices]]
+        id = "zm_yunyang"
+        label = "Yunyang (Mandarin, male)"
+        language = "zh"
+        tags = ["mandarin", "male"]

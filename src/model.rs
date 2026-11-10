@@ -315,8 +315,8 @@ mod tests {
 
     #[test]
     fn empty_and_blank_text_produce_no_segments() {
-        assert!(split_for_streaming("").is_empty());
-        assert!(split_for_streaming("   \n ").is_empty());
+        assert_eq!(split_for_streaming(""), Vec::<String>::new());
+        assert_eq!(split_for_streaming("   \n "), Vec::<String>::new());
     }
 
     /// Text with no terminator at all still has to come out whole.

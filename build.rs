@@ -41,6 +41,7 @@
 //! `cross build --target aarch64-unknown-linux-gnu` needs nothing else, and a
 //! plain host build sees no runner and executes the binary itself.
 
+use std::hash::{BuildHasher, BuildHasherDefault, DefaultHasher};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{fs, io};
@@ -68,25 +69,80 @@ const ESPEAK_CORE_FILES: &[&str] = &[
     "intonations",
 ];
 
-/// espeak-ng stores its data directory in a fixed-size buffer (`N_PATH_HOME`,
-/// 160 bytes). A longer path is silently truncated, the truncated path is not a
-/// directory, and espeak falls back to a compiled-in default that does not
-/// exist — surfacing as a baffling "No such file or directory" mid-build.
-/// Failing loudly here is worth the few lines.
+/// espeak-ng keeps its data directory in a fixed 160-byte buffer
+/// (`N_PATH_HOME`), and its data compiler builds the path of each source file
+/// it reads, `<data dir>/../phsource/<file>`, in a buffer only
+/// [`PHSOURCE_PATH_SLACK`] bytes longer (`compiledata.c`). Either one overflows
+/// silently: the path is cut short and the compile fails on a file that does
+/// not exist, as `Failed to open: '…/phsource/vdiph/o'`.
+///
+/// With source files nested up to 23 bytes deep, that leaves the data
+/// directory about 143 bytes. A CI checkout passes that once Cargo has added
+/// `target/<triple>/release/build/<crate>-<hash>/out`, or `target/llvm-cov-target`
+/// under coverage, which is why [`compile_espeak_data`] never shows espeak-ng
+/// `OUT_DIR` itself.
 const N_PATH_HOME: usize = 160;
 
-/// espeak-ng's data compiler holds its data directory in a fixed-size buffer,
-/// so a deep build path is silently truncated and it then fails to find data it
-/// has just written. Failing here, with the reason, is worth the few lines.
-fn check_path_length(data_dir: &Path) {
+/// How much longer than [`N_PATH_HOME`] the compiler's source-path buffer is.
+const PHSOURCE_PATH_SLACK: usize = 20;
+
+/// Assert espeak-ng's data compiler can name every file under `phsource` when
+/// its data directory is `data_dir`. Failing here, with the reason, beats the
+/// compiler's own error, which names a truncated path and nothing else.
+fn check_path_length(data_dir: &Path, phsource: &Path) {
+    let buffer = N_PATH_HOME + PHSOURCE_PATH_SLACK;
+    let needed =
+        data_dir.as_os_str().len() + "/../phsource/".len() + longest_path_under(phsource, phsource);
     assert!(
-        data_dir.as_os_str().len() < N_PATH_HOME,
-        "the build path is {} bytes, over espeak-ng's {N_PATH_HOME}-byte limit:\n  {}\n\
-         espeak-ng would silently fail to find its own data. Build from a \
-         shorter path (e.g. set CARGO_TARGET_DIR=/tmp/kokoro-target).",
-        data_dir.as_os_str().len(),
+        needed < buffer,
+        "espeak-ng's data compiler would need {needed} bytes for its longest \
+         source path under\n  {}\nover its {buffer}-byte buffer, and would \
+         silently truncate it.",
         data_dir.display(),
     );
+}
+
+/// The length in bytes of the longest file path under `dir`, relative to `base`.
+fn longest_path_under(dir: &Path, base: &Path) -> usize {
+    fs::read_dir(dir)
+        .unwrap_or_else(|e| panic!("reading {}: {e}", dir.display()))
+        .map(|entry| {
+            let path = entry
+                .unwrap_or_else(|e| panic!("reading {}: {e}", dir.display()))
+                .path();
+            if path.is_dir() {
+                longest_path_under(&path, base)
+            } else {
+                path.strip_prefix(base).unwrap().as_os_str().len()
+            }
+        })
+        .max()
+        .unwrap_or(0)
+}
+
+/// A symlink to `target` in the temp directory, whose path is short enough for
+/// espeak-ng's buffers wherever `target` is. See [`N_PATH_HOME`].
+///
+/// espeak-ng only joins strings onto the path it is given, so the link's length
+/// is what its buffers hold; the kernel follows it to the real files. It is
+/// named for `target`, so builds in different target directories never share
+/// one.
+fn short_link(target: &Path) -> PathBuf {
+    let digest = BuildHasherDefault::<DefaultHasher>::default().hash_one(target);
+    let link = std::env::temp_dir().join(format!("kokoro-espeak-{digest:016x}"));
+    remove_link(&link);
+    std::os::unix::fs::symlink(target, &link)
+        .unwrap_or_else(|e| panic!("linking {} to {}: {e}", link.display(), target.display()));
+    link
+}
+
+/// Remove a link [`short_link`] made, including one a failed build left behind.
+fn remove_link(link: &Path) {
+    if let Err(e) = fs::remove_file(link)
+        && e.kind() != io::ErrorKind::NotFound
+    {
+        panic!("removing {}: {e}", link.display());
+    }
 }
 
 fn main() {
@@ -204,7 +260,6 @@ fn compile_espeak_data(vendor: &Path, out: &Path, espeak_bin: &Path) -> PathBuf 
     let dist = root.join("espeak-ng-data");
     let dict_tmp = root.join("dictsource");
     let dict_src = vendor.join("dictsource");
-    check_path_length(&dist);
 
     // A stale tree would let a removed language survive as a `*_dict` file.
     if root.exists() {
@@ -223,15 +278,20 @@ fn compile_espeak_data(vendor: &Path, out: &Path, espeak_bin: &Path) -> PathBuf 
     let phsource = root.join("phsource");
     copy_dir(&vendor.join("phsource"), &phsource);
 
+    // espeak-ng is shown a short link to `root`, never `root` itself: see
+    // `N_PATH_HOME`. The link exists only while the compiler runs.
+    let link = short_link(&root);
+    check_path_length(&link.join("espeak-ng-data"), &phsource);
+
     let runner = target_runner();
     espeak(
         &runner,
         espeak_bin,
-        &root,
+        &link,
         &phsource,
         "--compile-intonations",
     );
-    espeak(&runner, espeak_bin, &root, &phsource, "--compile-phonemes");
+    espeak(&runner, espeak_bin, &link, &phsource, "--compile-phonemes");
 
     for lang in ESPEAK_DICTS {
         // `_rules` and `_list` are required; `_listx` (preferring the `extra`
@@ -259,11 +319,12 @@ fn compile_espeak_data(vendor: &Path, out: &Path, espeak_bin: &Path) -> PathBuf 
         espeak(
             &runner,
             espeak_bin,
-            &root,
+            &link,
             &dict_tmp,
             &format!("--compile={lang}"),
         );
     }
+    remove_link(&link);
 
     dist
 }
