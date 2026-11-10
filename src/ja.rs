@@ -200,7 +200,7 @@ const COMPLETE_MARKER: &str = ".complete";
 
 /// Expand the dictionary archive into a temporary directory, once.
 fn unpack_dictionary(archive: &Path) -> Result<PathBuf> {
-    let root = std::env::temp_dir().join("super-tts-unidic-6.0.0");
+    let root = std::env::temp_dir().join("super-voice-unidic-6.0.0");
     let dir = root.join(DICTIONARY_DIR);
     if root.join(COMPLETE_MARKER).is_file() {
         return Ok(dir);

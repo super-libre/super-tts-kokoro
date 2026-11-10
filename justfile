@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Task runner for the standalone Kokoro backend. Mirrors the recipe names used
-# by the main super-tts repo and by the other out-of-tree backends, so `just
+# by the main super-voice repo and by the other out-of-tree backends, so `just
 # check` means the same thing everywhere.
 #
 # Two things are specific to this backend:
@@ -36,8 +36,8 @@ build-release *args:
 #
 # Build and stage the binary for Import-from-dir. Usage: just stage [args]
 stage *args: (build-release args)
-    cp target/release/super-tts-backend-kokoro super-tts-backend-kokoro
-    @echo "staged super-tts-backend-kokoro — this directory is now installable with Import from dir"
+    cp target/release/super-voice-backend-kokoro super-voice-backend-kokoro
+    @echo "staged super-voice-backend-kokoro — this directory is now installable with Import from dir"
 
 # Note this also drops the UniDic dictionary `fetch-unidic` puts under target/,
 # so the next `just test-ja` downloads it again.
@@ -53,9 +53,9 @@ clean:
 #
 # Remove build output and every generated artifact in the tree.
 clean-all: clean
-    rm -f super-tts-backend-kokoro lcov.info *.profraw *.profdata
+    rm -f super-voice-backend-kokoro lcov.info *.profraw *.profdata
 
-# Runs a clippy check — mirrors super-tts's lint.
+# Runs a clippy check — mirrors super-voice's lint.
 check *args:
     cargo clippy --all-targets {{ args }} -- -W clippy::pedantic -D warnings -D unused_must_use
 

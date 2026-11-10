@@ -140,7 +140,8 @@ static ATTEMPT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new
 /// the other was still writing, publishing a tree that is missing whatever had
 /// not been written yet.
 fn unpack_data() -> Result<PathBuf> {
-    let root = std::env::temp_dir().join(format!("super-tts-espeak-{:016x}", digest(ESPEAK_DATA)));
+    let root =
+        std::env::temp_dir().join(format!("super-voice-espeak-{:016x}", digest(ESPEAK_DATA)));
 
     let len = root.as_os_str().len();
     if len >= N_PATH_HOME {

@@ -1,4 +1,4 @@
-Super TTS — Kokoro backend
+Super Voice — Kokoro backend
 Copyright (C) 2026 Jorge Menjivar <jorge@menjivar.ai>
 
 This program is free software: you can redistribute it and/or modify it under
@@ -97,7 +97,7 @@ domain in the United States.
 
 ## Fetched at runtime, not redistributed here
 
-These are downloaded by the Super TTS daemon on the user's machine before first
+These are downloaded by the Super Voice daemon on the user's machine before first
 use, under their own terms; no part of them is contained in this repository or
 its release archives.
 

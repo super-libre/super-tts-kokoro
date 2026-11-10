@@ -1,17 +1,17 @@
 #:schema https://jorge-menjivar.github.io/super-voice/backend.schema.json
-# Kokoro-82M for Super TTS.
+# Kokoro-82M for Super Voice.
 #
 # Every file below is fetched by the daemon before the first `POST /v1/load`:
 # the backend runs with `PrivateNetwork=yes` and a read-only backend directory,
 # so it can neither download nor write a weight itself.
 
 [backend]
-    id = "app.super-tts.kokoro"
-    source = "github.com/jorge-menjivar/super-tts-kokoro"
+    id = "app.super-voice.kokoro"
+    source = "github.com/super-libre/super-voice-kokoro"
     name = "Kokoro"
     version = "0.1.0"
     kind = "subprocess"
-    entrypoint = "super-tts-backend-kokoro"
+    entrypoint = "super-voice-backend-kokoro"
     product = "super-voice"
     contract = "v4"
     license = "GPL-3.0-only"

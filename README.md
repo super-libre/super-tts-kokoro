@@ -1,15 +1,15 @@
-# Super TTS — Kokoro backend
+# Super Voice — Kokoro backend
 
-[![coverage](https://img.shields.io/endpoint?url=https://jorge-menjivar.github.io/super-tts-kokoro/coverage.json)](https://jorge-menjivar.github.io/super-tts-kokoro/)
+[![coverage](https://img.shields.io/endpoint?url=https://super-libre.github.io/super-voice-kokoro/coverage.json)](https://super-libre.github.io/super-voice-kokoro/)
 
 [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) as a subprocess backend
-for [Super TTS](https://github.com/jorge-menjivar/super-tts). 82M parameters,
+for [Super Voice](https://github.com/jorge-menjivar/super-voice). 82M parameters,
 24 kHz output, 54 preset voices across eight languages, running on the CPU in
 faster than real time, with no system dependencies at all.
 
 ## What it is
 
-The Super TTS daemon does not compile model inference in-tree. It discovers
+The Super Voice daemon does not compile model inference in-tree. It discovers
 backends on disk and drives each one over a `/v1` HTTP contract on a Unix
 socket. This is one such backend: a single static binary that loads Kokoro's
 ONNX weights and answers `POST /v1/synthesize` with framed PCM.
@@ -41,7 +41,7 @@ minimal container.
 ### Building
 
 ```sh
-git clone --recursive https://github.com/jorge-menjivar/super-tts-kokoro
+git clone --recursive https://github.com/super-libre/super-voice-kokoro
 just build-release          # or: cargo build --release
 ```
 
@@ -147,19 +147,20 @@ this stage and not the model. The two are cleanly separated behind
 
 ```sh
 cargo build --release
-DIR=~/.local/share/super-tts/backends/app.super-tts.kokoro
+DIR=~/.local/share/super-voice/backends/app.super-voice.kokoro
 mkdir -p "$DIR"
-cp target/release/super-tts-backend-kokoro backend.toml "$DIR/"
+cp target/release/super-voice-backend-kokoro backend.toml "$DIR/"
 ```
 
-Then select `kokoro-82m` in the Super TTS settings app, or set it in
-`~/.config/super-tts/daemon.toml`:
+Then select `kokoro-82m` in the Super Voice app, or set it in the `synthesis`
+section of `~/.config/super-voice/daemon.ron`:
 
-```toml
-[synthesis]
-    preferred_model  = "kokoro-82m"
-    preferred_source = "github.com/jorge-menjivar/super-tts-kokoro"
-    active_backend   = "app.super-tts.kokoro"
+```ron
+synthesis: (
+    preferred_model: "kokoro-82m",
+    preferred_source: "github.com/super-libre/super-voice-kokoro",
+    active_backend: Some("app.super-voice.kokoro"),
+),
 ```
 
 The daemon downloads the weights, voice packs and the Japanese dictionary
@@ -311,7 +312,7 @@ cargo clippy --all-targets -- -W clippy::pedantic -D warnings
 
 ## License
 
-GPL-3.0-only, matching Super TTS. The Kokoro weights are Apache-2.0 and are
+GPL-3.0-only, matching Super Voice. The Kokoro weights are Apache-2.0 and are
 downloaded at runtime rather than vendored here.
 
 The pronunciation data in `data/` is not all ours: the English lexicons are
